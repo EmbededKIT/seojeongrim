@@ -140,7 +140,8 @@ class _BluetoothAppState extends State<BluetoothApp> {
   final String targetAddress = "98:D3:41:FD:DE:CC"; // HC-06 블루투스 주소
   BluetoothConnection? connection; // 블루투스 연결 객체
   String connectionStatus = "연결되지 않음"; // 초기 연결 상태
-  final TextEditingController valueController = TextEditingController(); // 값 입력 컨트롤러
+  final TextEditingController peopleController = TextEditingController(); // 인원수 입력 컨트롤러
+  final TextEditingController cardController = TextEditingController(); // 카드 개수 입력 컨트롤러
 
   @override
   void dispose() {
@@ -196,17 +197,33 @@ class _BluetoothAppState extends State<BluetoothApp> {
       return;
     }
 
-    final value = valueController.text;
-    if (int.tryParse(value) == null || int.parse(value) < 2 || int.parse(value) > 6) {
-      _showAlert("잘못된 값", "2에서 6 사이의 값을 입력하세요.");
+    final people = peopleController.text;
+    final card = cardController.text;
+
+    // 입력값 검증
+    if (int.tryParse(people) == null ||
+        int.parse(people) < 2 ||
+        int.parse(people) > 6) {
+      _showAlert("잘못된 입력", "인원수는 2에서 6 사이의 값을 입력하세요.");
       return;
     }
 
-    connection!.output.add(Uint8List.fromList(value.codeUnits));
+    if (int.tryParse(card) == null ||
+        int.parse(card) < 1 ||
+        int.parse(card) > 5) {
+      _showAlert("잘못된 입력", "카드 개수는 1에서 5 사이의 값을 입력하세요.");
+      return;
+    }
+
+    // 데이터 포맷 생성
+    final message = "P${people}C${card}\n";
+
+    // 블루투스 데이터 전송
+    connection!.output.add(Uint8List.fromList(message.codeUnits));
     connection!.output.allSent.then((_) {
-      _showAlert("전송 성공", "값이 성공적으로 전송되었습니다.");
+      _showAlert("전송 성공", "데이터가 성공적으로 전송되었습니다: $message");
     }).catchError((e) {
-      _showAlert("전송 실패", "값 전송 중 문제가 발생했습니다.");
+      _showAlert("전송 실패", "데이터 전송 중 문제가 발생했습니다.");
     });
   }
 
@@ -236,14 +253,14 @@ class _BluetoothAppState extends State<BluetoothApp> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '인원수 입력',
+          '인원수와 카드 개수 입력',
           style: TextStyle(
             fontFamily: 'Cafe24Ssurround',
             color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.grey, // AppBar 배경색 변경
-        elevation: 0, // AppBar 그림자 제거 (선택 사항)
+        backgroundColor: Colors.grey, // AppBar 배경색
+        elevation: 0,
       ),
       body: Center(
         child: Column(
@@ -252,7 +269,7 @@ class _BluetoothAppState extends State<BluetoothApp> {
             // 연결 상태 텍스트
             Container(
               alignment: Alignment.center,
-              width: buttonWidth, // 버튼과 동일한 가로 크기
+              width: buttonWidth,
               child: Text(
                 "상태: $connectionStatus",
                 style: TextStyle(
@@ -278,15 +295,30 @@ class _BluetoothAppState extends State<BluetoothApp> {
               ),
             ),
             SizedBox(height: 20),
-            // 값 입력 필드
+            // 인원수 입력 필드
             SizedBox(
-              width: buttonWidth, // AppBar 그림자 제거 (선택 사항)
+              width: buttonWidth,
               height: buttonHeight,
               child: TextField(
-                controller: valueController,
+                controller: peopleController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: "값 입력 (2-6)",
+                  labelText: "인원수 입력 (2-6)",
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            // 카드 개수 입력 필드
+            SizedBox(
+              width: buttonWidth,
+              height: buttonHeight,
+              child: TextField(
+                controller: cardController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: "카드 개수 입력 (1-5)",
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(horizontal: 10),
                 ),
