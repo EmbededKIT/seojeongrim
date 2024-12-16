@@ -39,7 +39,7 @@ int main() {
         if (serialDataAvail(fd_serial)) { // 읽을 데이터가 있는 경우
             dat = serialRead(fd_serial);  // 1바이트 데이터를 읽음
             
-            // 읽은 데이터가 2~6인 경우만 처리
+            // 읽은 데이터가 1~5인 경우만 처리
             if (dat >= '1' && dat <= '5') {
                 card_number = dat - '0'; // 아스키 값을 정수로 변환
                 printf("Card number: %d\n", card_number);
